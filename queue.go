@@ -206,7 +206,7 @@ func (queue *redisQueue) StartConsuming(prefetchLimit int, pollDuration time.Dur
 	}
 
 	// add queue to list of queues consumed on this connection
-	if ok := queue.redisClient.SAdd(queue.queuesKey, queue.name); !ok {
+	if !queue.redisClient.SAdd(queue.queuesKey, queue.name) {
 		log.Panicf("rmq queue failed to start consuming %s", queue)
 	}
 
@@ -281,7 +281,7 @@ func (queue *redisQueue) addConsumer(tag string) string {
 	name := fmt.Sprintf("%s-%s", tag, uniuri.NewLen(6))
 
 	// add consumer to list of consumers of this queue
-	if ok := queue.redisClient.SAdd(queue.consumersKey, name); !ok {
+	if !queue.redisClient.SAdd(queue.consumersKey, name) {
 		log.Panicf("rmq queue failed to add consumer %s %s", queue, tag)
 	}
 

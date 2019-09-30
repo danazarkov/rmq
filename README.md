@@ -66,7 +66,7 @@ But it's also possible to access a Redis listening on a Unix socket.
 connection := rmq.OpenConnection("my service", "unix", "/tmp/redis.sock", 1)
 ```
 
-Note: rmq panics on Redis connection errors. Your producers and consumers will
+Note: rmq don't panics on Redis connection errors. Your producers and consumers will
 crash if Redis goes down. Please let us know if you would see this handled
 differently.
 

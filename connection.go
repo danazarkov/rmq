@@ -55,7 +55,9 @@ func openConnectionWithRedisClient(tag string, redisClient RedisClient) *redisCo
 	}
 
 	// add to connection set after setting heartbeat to avoid race with cleaner
-	redisClient.SAdd(connectionsKey, name)
+	if !redisClient.SAdd(connectionsKey, name) {
+		log.Panicf("failed to add connectionsKey %s, name %s", connectionsKey, name)
+	}
 
 	go connection.heartbeat()
 	// log.Printf("rmq connection connected to %s %s:%s %d", name, network, address, db)
