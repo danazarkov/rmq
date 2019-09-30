@@ -221,7 +221,7 @@ func (client *TestRedisClient) LRem(key string, count int, value string) (affect
 // Out of range indexes will not produce an error: if start is larger than the end of the list,
 // or start > end, the result will be an empty list (which causes key to be removed).
 // If end is larger than the end of the list, Redis will treat it like the last element of the list
-func (client *TestRedisClient) LTrim(key string, start, stop int) {
+func (client *TestRedisClient) LTrim(key string, start, stop int) bool {
 
 	lock.Lock()
 	defer lock.Unlock()
@@ -230,7 +230,7 @@ func (client *TestRedisClient) LTrim(key string, start, stop int) {
 
 	//Wasn't a list, or is empty
 	if err != nil || len(list) == 0 {
-		return
+		return false
 	}
 
 	if start < 0 {
@@ -243,10 +243,12 @@ func (client *TestRedisClient) LTrim(key string, start, stop int) {
 	//invalid values cause the remove of the key
 	if start > stop {
 		client.store.Delete(key)
-		return
+		return false
 	}
 
 	client.storeList(key, list[start:stop])
+
+	return true
 }
 
 // RPopLPush atomically returns and removes the last element (tail) of the list stored at source,

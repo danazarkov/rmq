@@ -12,7 +12,7 @@ type RedisClient interface {
 	LPush(key, value string) bool
 	LLen(key string) (affected int, ok bool)
 	LRem(key string, count int, value string) (affected int, ok bool)
-	LTrim(key string, start, stop int)
+	LTrim(key string, start, stop int) bool
 	RPopLPush(source, destination string) (value string, ok bool)
 
 	// sets

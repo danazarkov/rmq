@@ -12,12 +12,12 @@ type RedisWrapper struct {
 }
 
 func (wrapper RedisWrapper) Set(key string, value string, expiration time.Duration) bool {
-	return checkErr(wrapper.rawClient.Set(key, value, expiration).Err())
+	return checkNoErr(wrapper.rawClient.Set(key, value, expiration).Err())
 }
 
 func (wrapper RedisWrapper) Del(key string) (affected int, ok bool) {
 	n, err := wrapper.rawClient.Del(key).Result()
-	ok = checkErr(err)
+	ok = checkNoErr(err)
 	if !ok {
 		return 0, false
 	}
@@ -26,7 +26,7 @@ func (wrapper RedisWrapper) Del(key string) (affected int, ok bool) {
 
 func (wrapper RedisWrapper) TTL(key string) (ttl time.Duration, ok bool) {
 	ttl, err := wrapper.rawClient.TTL(key).Result()
-	ok = checkErr(err)
+	ok = checkNoErr(err)
 	if !ok {
 		return 0, false
 	}
@@ -34,12 +34,12 @@ func (wrapper RedisWrapper) TTL(key string) (ttl time.Duration, ok bool) {
 }
 
 func (wrapper RedisWrapper) LPush(key, value string) bool {
-	return checkErr(wrapper.rawClient.LPush(key, value).Err())
+	return checkNoErr(wrapper.rawClient.LPush(key, value).Err())
 }
 
 func (wrapper RedisWrapper) LLen(key string) (affected int, ok bool) {
 	n, err := wrapper.rawClient.LLen(key).Result()
-	ok = checkErr(err)
+	ok = checkNoErr(err)
 	if !ok {
 		return 0, false
 	}
@@ -48,25 +48,25 @@ func (wrapper RedisWrapper) LLen(key string) (affected int, ok bool) {
 
 func (wrapper RedisWrapper) LRem(key string, count int, value string) (affected int, ok bool) {
 	n, err := wrapper.rawClient.LRem(key, int64(count), value).Result()
-	return int(n), checkErr(err)
+	return int(n), checkNoErr(err)
 }
 
-func (wrapper RedisWrapper) LTrim(key string, start, stop int) {
-	checkErr(wrapper.rawClient.LTrim(key, int64(start), int64(stop)).Err())
+func (wrapper RedisWrapper) LTrim(key string, start, stop int) bool {
+	return checkNoErr(wrapper.rawClient.LTrim(key, int64(start), int64(stop)).Err())
 }
 
 func (wrapper RedisWrapper) RPopLPush(source, destination string) (value string, ok bool) {
 	value, err := wrapper.rawClient.RPopLPush(source, destination).Result()
-	return value, checkErr(err)
+	return value, checkNoErr(err)
 }
 
 func (wrapper RedisWrapper) SAdd(key, value string) bool {
-	return checkErr(wrapper.rawClient.SAdd(key, value).Err())
+	return checkNoErr(wrapper.rawClient.SAdd(key, value).Err())
 }
 
 func (wrapper RedisWrapper) SMembers(key string) []string {
 	members, err := wrapper.rawClient.SMembers(key).Result()
-	if ok := checkErr(err); !ok {
+	if ok := checkNoErr(err); !ok {
 		return []string{}
 	}
 	return members
@@ -74,7 +74,7 @@ func (wrapper RedisWrapper) SMembers(key string) []string {
 
 func (wrapper RedisWrapper) SRem(key, value string) (affected int, ok bool) {
 	n, err := wrapper.rawClient.SRem(key, value).Result()
-	ok = checkErr(err)
+	ok = checkNoErr(err)
 	if !ok {
 		return 0, false
 	}
@@ -85,15 +85,15 @@ func (wrapper RedisWrapper) FlushDb() {
 	wrapper.rawClient.FlushDb()
 }
 
-// checkErr returns true if there is no error, false if the result error is nil and panics if there's another error
-func checkErr(err error) (ok bool) {
+// checkNoErr returns true if there is no error, false if the result error is nil or if there's another error
+func checkNoErr(err error) (ok bool) {
 	switch err {
 	case nil:
 		return true
 	case redis.Nil:
 		return false
 	default:
-		log.Panicf("rmq redis error is not nil %s", err)
+		log.Printf("rmq redis error is not nil %s", err)
 		return false
 	}
 }
